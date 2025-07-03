@@ -1,28 +1,88 @@
 import { getTransactions } from '@/lib/actions'
+import { Container, Title, Text, Card, Group, Badge, Button, Stack, Flex } from '@mantine/core'
+import { IconPlus, IconUser, IconTrendingUp, IconTrendingDown } from '@tabler/icons-react'
+import Link from 'next/link'
 
 export default async function TransactionsPage() {
   try {
     const transactions = await getTransactions()
     
     return (
-      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <h1>Budget Tracker</h1>
-        <p>Found {transactions.length} transactions</p>
-        {transactions.map((transaction) => (
-          <div key={transaction.id} style={{ padding: '0.5rem', border: '1px solid #ccc', margin: '0.5rem 0' }}>
-            <strong>{transaction.title}</strong> - ¥{transaction.amount} ({transaction.type})
-            {transaction.description && <p>{transaction.description}</p>}
-            <small>Category: {transaction.category} | Date: {new Date(transaction.date).toLocaleDateString()}</small>
+      <Container size="lg" py="xl">
+        <Flex justify="space-between" align="center" mb="xl">
+          <div>
+            <Title order={1} size="h1" mb="xs">Budget Tracker</Title>
+            <Text size="lg" c="dimmed">
+              {transactions.length} transactions found
+            </Text>
           </div>
-        ))}
-      </div>
+          <Group>
+            <Button
+              component={Link}
+              href="/auth/register"
+              variant="light"
+              leftSection={<IconUser size={16} />}
+            >
+              Register
+            </Button>
+            <Button
+              component={Link}
+              href="/transactions/new"
+              leftSection={<IconPlus size={16} />}
+            >
+              Add Transaction
+            </Button>
+          </Group>
+        </Flex>
+
+        <Stack gap="md">
+          {transactions.map((transaction) => (
+            <Card key={transaction.id} shadow="sm" padding="lg" withBorder>
+              <Group justify="space-between" mb="xs">
+                <Text fw={500} size="lg">{transaction.title}</Text>
+                <Group gap="xs">
+                  <Badge
+                    color={transaction.type === 'income' ? 'green' : 'red'}
+                    variant="light"
+                    leftSection={
+                      transaction.type === 'income' ? (
+                        <IconTrendingUp size={12} />
+                      ) : (
+                        <IconTrendingDown size={12} />
+                      )
+                    }
+                  >
+                    {transaction.type}
+                  </Badge>
+                  <Text fw={700} size="lg" c={transaction.type === 'income' ? 'green' : 'red'}>
+                    ¥{transaction.amount.toLocaleString()}
+                  </Text>
+                </Group>
+              </Group>
+
+              {transaction.description && (
+                <Text size="sm" c="dimmed" mb="xs">
+                  {transaction.description}
+                </Text>
+              )}
+
+              <Group justify="space-between" mt="md">
+                <Badge variant="outline">{transaction.category}</Badge>
+                <Text size="sm" c="dimmed">
+                  {new Date(transaction.date).toLocaleDateString('ja-JP')}
+                </Text>
+              </Group>
+            </Card>
+          ))}
+        </Stack>
+      </Container>
     )
   } catch (error) {
     return (
-      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <h1>Error</h1>
-        <p>Failed to load transactions: {String(error)}</p>
-      </div>
+      <Container size="lg" py="xl">
+        <Title order={1} c="red" mb="md">Error</Title>
+        <Text>Failed to load transactions: {String(error)}</Text>
+      </Container>
     )
   }
 }
