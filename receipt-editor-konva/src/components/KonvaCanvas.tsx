@@ -142,13 +142,15 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
   };
 
   return (
-    <div className={`relative bg-gray-100 ${className || ''}`}>
+    <div className={`relative bg-gray-100 ${className || ''} max-w-full max-h-full overflow-auto`}>
       <div 
         className="bg-white shadow-lg border border-gray-300 rounded-lg overflow-hidden"
         style={{
           width: config.width + 40,
           height: config.height + 40,
           padding: '20px',
+          maxWidth: '100%',
+          maxHeight: '100%',
         }}
       >
         <Stage

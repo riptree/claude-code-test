@@ -13,7 +13,7 @@ interface ReceiptCanvasProps {
 const DynamicKonvaCanvas = dynamic(() => import('./KonvaCanvas'), { 
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg" style={{ width: 600, height: 400 }}>
+    <div className="flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg w-full h-96 max-w-4xl">
       <div className="text-gray-500">Loading canvas...</div>
     </div>
   )
@@ -28,7 +28,7 @@ const ReceiptCanvas: React.FC<ReceiptCanvasProps> = ({ className, stageRef }) =>
 
   if (!isClient) {
     return (
-      <div className={`${className || ''} flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg`} style={{ width: 600, height: 400 }}>
+      <div className={`${className || ''} flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg w-full h-96 max-w-4xl`}>
         <div className="text-gray-500">Loading canvas...</div>
       </div>
     );

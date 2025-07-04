@@ -51,9 +51,9 @@ export default function Home() {
         </header>
 
         {/* Canvas Area */}
-        <div className="flex-1 flex">
-          <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
-            <ReceiptCanvas stageRef={stageRef} />
+        <div className="flex-1 flex min-h-0">
+          <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
+            <ReceiptCanvas stageRef={stageRef} className="max-w-full max-h-full" />
           </div>
           
           {/* Properties Panel */}

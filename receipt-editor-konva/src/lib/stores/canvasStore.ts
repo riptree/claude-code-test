@@ -3,8 +3,8 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { CanvasState, CanvasActions, CanvasElement, CanvasConfig, Tool } from '../types';
 
 const DEFAULT_CONFIG: CanvasConfig = {
-  width: 1160,
-  height: 406,
+  width: 800,
+  height: 280,
   orientation: 'landscape',
   backgroundColor: '#ffffff',
   gridVisible: true,
