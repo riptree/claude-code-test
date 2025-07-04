@@ -1,16 +1,28 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import Konva from 'konva';
+import React, { useRef, useState, useEffect } from 'react';
 import ReceiptCanvas from '@/components/ReceiptCanvas';
 import Toolbar from '@/components/Toolbar';
 import PropertyPanel from '@/components/PropertyPanel';
 import ExportDialog from '@/components/ExportDialog';
-import { FiDownload, FiSettings } from 'react-icons/fi';
+import { FiDownload } from 'react-icons/fi';
 
 export default function Home() {
-  const stageRef = useRef<Konva.Stage>(null);
+  const [isClient, setIsClient] = useState(false);
+  const stageRef = useRef<unknown>(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="flex h-screen bg-gray-100 items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
