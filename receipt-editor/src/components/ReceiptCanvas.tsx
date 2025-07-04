@@ -9,7 +9,7 @@ import { resizeCanvas } from '@/lib/canvas/canvasUtils';
 export default function ReceiptCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
-  const { config, tool, selectElement, updateElement } = useCanvasStore();
+  const { config, tool, selectElement, updateElement, deleteElement, undo, redo, selectedElementId } = useCanvasStore();
   const [isCanvasReady, setIsCanvasReady] = useState(false);
 
   // Initialize Fabric.js canvas
@@ -48,6 +48,18 @@ export default function ReceiptCanvas() {
           height: (obj.height || 0) * (obj.scaleY || 1),
           rotation: obj.angle || 0,
         });
+      }
+    });
+
+    // Handle object removal from canvas
+    canvas.on('before:path:created', (e) => {
+      // This event fires when objects are about to be removed
+    });
+
+    canvas.on('object:removed', (e) => {
+      const obj = e.target;
+      if (obj && obj.id) {
+        deleteElement(obj.id);
       }
     });
 
@@ -161,6 +173,73 @@ export default function ReceiptCanvas() {
       canvas.off('mouse:down', handleCanvasClick);
     };
   }, [tool]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    if (!fabricCanvasRef.current) return;
+
+    const canvas = fabricCanvasRef.current;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent default browser behavior for our handled keys
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        
+        const activeObject = canvas.getActiveObject();
+        if (activeObject && activeObject.id) {
+          canvas.remove(activeObject);
+          canvas.renderAll();
+        }
+      }
+      
+      // Handle Undo/Redo shortcuts
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          undo();
+        } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+          e.preventDefault();
+          redo();
+        }
+      }
+      
+      // Handle Escape key to clear selection
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        canvas.discardActiveObject();
+        canvas.renderAll();
+      }
+    };
+
+    // Add event listener to document for global keyboard shortcuts
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Synchronize canvas selection with store selection
+  useEffect(() => {
+    if (!fabricCanvasRef.current || !isCanvasReady) return;
+
+    const canvas = fabricCanvasRef.current;
+    
+    if (selectedElementId) {
+      // Find the object with the matching ID
+      const objects = canvas.getObjects();
+      const targetObject = objects.find(obj => obj.id === selectedElementId);
+      
+      if (targetObject) {
+        canvas.setActiveObject(targetObject);
+        canvas.renderAll();
+      }
+    } else {
+      // Clear selection if no element is selected
+      canvas.discardActiveObject();
+      canvas.renderAll();
+    }
+  }, [selectedElementId, isCanvasReady]);
 
   return (
     <div className="relative">

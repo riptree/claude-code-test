@@ -77,8 +77,8 @@ interface CanvasState {
 }
 
 const defaultConfig: CanvasConfig = {
-  width: 400,
-  height: 300,
+  width: 1160,
+  height: 406,
   backgroundColor: '#ffffff',
   orientation: 'landscape',
 };

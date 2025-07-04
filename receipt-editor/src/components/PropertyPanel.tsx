@@ -369,8 +369,7 @@ export default function PropertyPanel() {
                     : 'bg-gray-50 hover:bg-gray-100'
                 }`}
                 onClick={() => {
-                  // TODO: Select element in canvas
-                  console.log('Select element:', element.id);
+                  selectElement(element.id);
                 }}
               >
                 <div className="flex items-center justify-between">
