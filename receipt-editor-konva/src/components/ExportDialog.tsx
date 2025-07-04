@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { FiX, FiDownload, FiImage } from 'react-icons/fi';
 import { KonvaStage } from '@/lib/types/konva';
 import { useCanvasStore } from '@/lib/stores/canvasStore';
+import { dataURLToBMP } from '@/lib/canvas/bmpExporter';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -82,13 +83,21 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       setPreviewUrl(dataURL);
 
       console.log('Creating download link...');
+      // PNG→BMP変換を行う
+      console.log('Converting PNG to BMP...');
+      const bmpBlob = await dataURLToBMP(dataURL);
+      console.log('BMP conversion completed');
+
       // ダウンロードリンクを作成
       const link = document.createElement('a');
-      link.download = `${exportSettings.filename}.png`;
-      link.href = dataURL;
+      link.download = `${exportSettings.filename}.bmp`;
+      link.href = URL.createObjectURL(bmpBlob);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // URLオブジェクトを解放
+      URL.revokeObjectURL(link.href);
       console.log('Download completed');
 
     } catch (error) {
@@ -255,9 +264,12 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                   </div>
 
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Export Size</h4>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Export Settings</h4>
                     <p className="text-sm text-gray-600">
-                      横向き: {FIXED_WIDTH} × {FIXED_HEIGHT} px (Receipt format)
+                      フォーマット: BMP (24bit RGB)
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      サイズ: {FIXED_WIDTH} × {FIXED_HEIGHT} px
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {orientation === 'portrait' 
