@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { KonvaStage } from '@/lib/types/konva';
 
 interface ReceiptCanvasProps {
   className?: string;
-  stageRef?: React.RefObject<any>;
+  stageRef?: React.RefObject<KonvaStage | null>;
 }
 
 // React-Konvaを動的インポート

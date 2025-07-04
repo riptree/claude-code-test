@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReceiptCanvas from '@/components/ReceiptCanvas';
 import Toolbar from '@/components/Toolbar';
 import PropertyPanel from '@/components/PropertyPanel';
 import ExportDialog from '@/components/ExportDialog';
 import { FiDownload } from 'react-icons/fi';
+import { KonvaStage } from '@/lib/types/konva';
 
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
-  const stageRef = useRef<any>(null);
+  const stageRef = useRef<KonvaStage | null>(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   useEffect(() => {

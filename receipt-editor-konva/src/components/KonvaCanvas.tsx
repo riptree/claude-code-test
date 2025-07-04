@@ -4,13 +4,45 @@ import React, { useRef } from 'react';
 import { Stage, Layer, Rect, Text } from 'react-konva';
 import { useCanvasStore } from '@/lib/stores/canvasStore';
 
+// Konvaの型を動的インポート用に定義
+type KonvaStage = {
+  toDataURL: (config?: {
+    mimeType?: string;
+    quality?: number;
+    pixelRatio?: number;
+    width?: number;
+    height?: number;
+  }) => string;
+  getPointerPosition: () => { x: number; y: number } | null;
+  x: () => number;
+  y: () => number;
+  scaleX: () => number;
+  scaleY: () => number;
+  width: () => number;
+  height: () => number;
+  [key: string]: unknown;
+};
+
+type KonvaEvent = {
+  target: {
+    getStage: () => KonvaStage | null;
+    x: () => number;
+    y: () => number;
+    scaleX: () => number;
+    scaleY: () => number;
+    width: () => number;
+    height: () => number;
+    rotation: () => number;
+  };
+};
+
 interface KonvaCanvasProps {
   className?: string;
-  stageRef?: React.RefObject<any>;
+  stageRef?: React.RefObject<KonvaStage | null>;
 }
 
 const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: externalStageRef }) => {
-  const internalStageRef = useRef<any>(null);
+  const internalStageRef = useRef<KonvaStage | null>(null);
   const stageRef = externalStageRef || internalStageRef;
   
   const {
@@ -28,7 +60,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
   } = useCanvasStore();
 
   // Handle stage click for adding elements
-  const handleStageClick = (e: any) => {
+  const handleStageClick = (e: KonvaEvent) => {
     if (tool === 'select') {
       if (e.target === e.target.getStage()) {
         selectElement(null);
