@@ -1,0 +1,201 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Receipt Editor Konva - Cursor Rules
+
+You are an expert in React, TypeScript, Next.js, Konva.js, and Zustand.
+
+## Project Overview
+This is a receipt editor application built with Konva.js for canvas-based image editing. Users can add text, shapes, and images to create receipts that export as BMP files.
+
+## Tech Stack
+- **Framework**: Next.js 15.3.5 (App Router)
+- **Language**: TypeScript
+- **Canvas**: Konva.js 9.3.20 + React-Konva 19.0.7
+- **State Management**: Zustand 5.0.6
+- **Styling**: Tailwind CSS 4
+- **Icons**: React Icons 5.5.0
+
+## Key Conventions
+
+### File Structure
+```
+src/
+├── app/                 # Next.js App Router
+├── components/          # UI components
+├── lib/
+│   ├── canvas/         # Canvas utilities
+│   ├── stores/         # Zustand stores
+│   └── types/          # Type definitions
+└── hooks/              # Custom hooks
+```
+
+### Component Patterns
+- Use functional components with TypeScript
+- Implement proper error boundaries for canvas operations
+- Use React.memo for performance optimization on canvas components
+- Separate canvas logic from UI components
+
+### State Management
+- Use Zustand for global canvas state
+- Keep canvas elements in a normalized structure
+- Implement proper state updates for undo/redo functionality
+- Use immer-style updates for complex state changes
+
+### Canvas Development
+- Always check for null refs before canvas operations
+- Use proper coordinate transformations for different canvas sizes
+- Implement proper event handling for canvas interactions
+- Handle both mouse and touch events for mobile support
+
+### Type Safety
+- Define strict types for canvas elements
+- Use discriminated unions for different element types
+- Implement proper type guards for canvas operations
+- Export types from centralized type files
+
+## Code Style
+
+### React/TypeScript
+- Use functional components with hooks
+- Implement proper prop types with interfaces
+- Use React.forwardRef for canvas components
+- Handle async operations with proper error handling
+
+### Konva.js Specific
+- Use React-Konva components consistently
+- Implement proper ref handling for Konva nodes
+- Use Konva's built-in event system
+- Handle canvas transformations properly
+
+### Performance
+- Use React.memo for expensive canvas renders
+- Implement proper cleanup for canvas resources
+- Use requestAnimationFrame for smooth animations
+- Optimize re-renders with proper dependency arrays
+
+## Common Patterns
+
+### Canvas Element Management
+```typescript
+// Always use discriminated unions for elements
+type CanvasElement = TextElement | RectElement | CircleElement | LineElement | ImageElement;
+
+// Implement proper element updates
+const updateElement = (id: string, updates: Partial<CanvasElement>) => {
+  // Use immer-style updates
+};
+```
+
+### Canvas Operations
+```typescript
+// Always check refs before operations
+if (!stageRef.current) return;
+
+// Use proper coordinate transformations
+const relativePointer = stageRef.current.getRelativePointerPosition();
+```
+
+### State Updates
+```typescript
+// Use Zustand patterns
+const useCanvasStore = create<CanvasStore>((set, get) => ({
+  elements: [],
+  updateElement: (id, updates) =>
+    set((state) => ({
+      elements: state.elements.map((el) =>
+        el.id === id ? { ...el, ...updates } : el
+      ),
+    })),
+}));
+```
+
+## Best Practices
+
+### Error Handling
+- Always wrap canvas operations in try-catch blocks
+- Provide user-friendly error messages
+- Log detailed errors for debugging
+- Implement fallback UI for canvas failures
+
+### Performance
+- Use React.memo for canvas components
+- Implement proper cleanup in useEffect
+- Avoid unnecessary re-renders with useMemo/useCallback
+- Use proper keys for dynamic canvas elements
+
+### Accessibility
+- Provide keyboard navigation for canvas tools
+- Implement proper ARIA labels
+- Ensure proper focus management
+- Provide alternative text for canvas content
+
+### Testing
+- Mock Konva.js for unit tests
+- Test canvas operations with proper setup
+- Use React Testing Library for component tests
+- Implement integration tests for canvas workflows
+
+## File Naming
+- Use PascalCase for components: `PropertyPanel.tsx`
+- Use camelCase for utilities: `canvasUtils.ts`
+- Use descriptive names: `bmpExporter.ts`
+- Group related files in directories
+
+## Import Organization
+```typescript
+// 1. React/Next.js imports
+import React from 'react';
+import { NextPage } from 'next';
+
+// 2. Third-party libraries
+import { Stage, Layer } from 'react-konva';
+import { create } from 'zustand';
+
+// 3. Internal imports
+import { CanvasElement } from '@/lib/types';
+import { useCanvasStore } from '@/lib/stores/canvasStore';
+
+// 4. Relative imports
+import './styles.css';
+```
+
+## Canvas-Specific Guidelines
+
+### Element Creation
+- Always generate unique IDs for elements
+- Set proper default values for all properties
+- Implement proper validation for element data
+- Use consistent coordinate systems
+
+### Export Functionality
+- Handle different export formats properly
+- Implement proper scaling for different output sizes
+- Provide progress feedback for long operations
+- Handle export errors gracefully
+
+### Tool Management
+- Implement proper tool state management
+- Handle tool switching cleanly
+- Provide visual feedback for active tools
+- Implement keyboard shortcuts for tools
+
+## Common Pitfalls to Avoid
+- Don't mutate canvas state directly
+- Don't forget to handle canvas resize events
+- Don't ignore memory leaks in canvas operations
+- Don't skip proper TypeScript typing for canvas elements
+- Don't forget to handle touch events for mobile
+- Don't ignore accessibility in canvas interactions
+
+## When Making Changes
+1. Always test canvas operations in both development and production
+2. Verify export functionality works correctly
+3. Check performance with large numbers of elements
+4. Test on different screen sizes and devices
+5. Ensure proper error handling for edge cases
+6. Validate TypeScript types are correct
+7. Test undo/redo functionality if applicable
+8. Verify state persistence works correctly 
