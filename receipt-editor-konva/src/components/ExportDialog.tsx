@@ -6,7 +6,7 @@ import { FiDownload, FiX } from 'react-icons/fi';
 interface ExportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  stageRef?: React.RefObject<unknown>;
+  stageRef?: React.RefObject<any>;
 }
 
 const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose }) => {

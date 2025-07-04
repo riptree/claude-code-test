@@ -9,7 +9,7 @@ import { FiDownload } from 'react-icons/fi';
 
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
-  const stageRef = useRef<unknown>(null);
+  const stageRef = useRef<any>(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   useEffect(() => {

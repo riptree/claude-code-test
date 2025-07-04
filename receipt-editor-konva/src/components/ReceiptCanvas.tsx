@@ -1,13 +1,24 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 
 interface ReceiptCanvasProps {
   className?: string;
-  stageRef?: React.RefObject<unknown>;
+  stageRef?: React.RefObject<any>;
 }
 
-const ReceiptCanvas: React.FC<ReceiptCanvasProps> = ({ className }) => {
+// React-Konvaを動的インポート
+const DynamicKonvaCanvas = dynamic(() => import('./KonvaCanvas'), { 
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg" style={{ width: 600, height: 400 }}>
+      <div className="text-gray-500">Loading canvas...</div>
+    </div>
+  )
+});
+
+const ReceiptCanvas: React.FC<ReceiptCanvasProps> = ({ className, stageRef }) => {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -16,17 +27,13 @@ const ReceiptCanvas: React.FC<ReceiptCanvasProps> = ({ className }) => {
 
   if (!isClient) {
     return (
-      <div className={`${className || ''} flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg`}>
+      <div className={`${className || ''} flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg`} style={{ width: 600, height: 400 }}>
         <div className="text-gray-500">Loading canvas...</div>
       </div>
     );
   }
 
-  return (
-    <div className={`${className || ''} flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg`}>
-      <div className="text-gray-500">Canvas will be loaded here</div>
-    </div>
-  );
+  return <DynamicKonvaCanvas className={className} stageRef={stageRef} />;
 };
 
 export default ReceiptCanvas;
