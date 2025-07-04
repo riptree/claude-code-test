@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { Stage, Layer, Rect, Text } from 'react-konva';
+import React, { useRef, useEffect } from 'react';
+import { Stage, Layer, Rect, Text, Circle, Line, Image, Transformer } from 'react-konva';
 import { useCanvasStore } from '@/lib/stores/canvasStore';
 
 // Konvaの型を動的インポート用に定義
@@ -44,6 +44,7 @@ interface KonvaCanvasProps {
 const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: externalStageRef }) => {
   const internalStageRef = useRef<KonvaStage | null>(null);
   const stageRef = externalStageRef || internalStageRef;
+  const transformerRef = useRef<any>(null);
   
   const {
     config,
@@ -58,6 +59,24 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
     panX,
     panY,
   } = useCanvasStore();
+
+  // Update transformer when selection changes
+  useEffect(() => {
+    if (transformerRef.current) {
+      const stage = stageRef.current;
+      if (stage && selectedElementId) {
+        const selectedNode = stage.findOne('#' + selectedElementId);
+        if (selectedNode) {
+          transformerRef.current.nodes([selectedNode]);
+        } else {
+          transformerRef.current.nodes([]);
+        }
+      } else {
+        transformerRef.current.nodes([]);
+      }
+      transformerRef.current.getLayer()?.batchDraw();
+    }
+  }, [selectedElementId, stageRef]);
 
   // Handle stage click for adding elements
   const handleStageClick = (e: KonvaEvent) => {
@@ -118,6 +137,39 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
         };
         break;
       
+      case 'circle':
+        newElement = {
+          id: elementId,
+          type: 'circle',
+          x,
+          y,
+          width: 80,
+          height: 80,
+          rotation: 0,
+          opacity: 1,
+          fill: '#ffffff',
+          stroke: '#000000',
+          strokeWidth: 2,
+        };
+        break;
+      
+      case 'line':
+        newElement = {
+          id: elementId,
+          type: 'line',
+          x,
+          y,
+          width: 100,
+          height: 2,
+          rotation: 0,
+          opacity: 1,
+          fill: '#000000',
+          stroke: '#000000',
+          strokeWidth: 2,
+          points: [0, 0, 100, 0],
+        };
+        break;
+      
       default:
         return;
     }
@@ -138,6 +190,29 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
     updateElement(elementId, {
       x: node.x(),
       y: node.y(),
+    });
+  };
+
+  // Handle transformer changes
+  const handleTransformEnd = (e: any) => {
+    const node = e.target;
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
+    
+    // Calculate new width and height
+    const newWidth = Math.max(5, node.width() * scaleX);
+    const newHeight = Math.max(5, node.height() * scaleY);
+    
+    // Reset scale and update dimensions
+    node.scaleX(1);
+    node.scaleY(1);
+    
+    updateElement(node.id(), {
+      x: node.x(),
+      y: node.y(),
+      width: newWidth,
+      height: newHeight,
+      rotation: node.rotation(),
     });
   };
 
@@ -222,10 +297,63 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                     />
                   );
                 
+                case 'circle':
+                  return (
+                    <Circle
+                      {...commonProps}
+                      radius={Math.min(element.width, element.height) / 2}
+                      fill={element.fill}
+                      stroke={element.stroke}
+                      strokeWidth={element.strokeWidth}
+                    />
+                  );
+                
+                case 'line':
+                  return (
+                    <Line
+                      {...commonProps}
+                      points={element.points || [0, 0, element.width, 0]}
+                      stroke={element.stroke}
+                      strokeWidth={element.strokeWidth}
+                    />
+                  );
+                
+                case 'image':
+                  const ImageComponent = () => {
+                    const [imageElement, setImageElement] = React.useState<HTMLImageElement | null>(null);
+                    
+                    React.useEffect(() => {
+                      if (element.imageUrl) {
+                        const img = new window.Image();
+                        img.onload = () => setImageElement(img);
+                        img.src = element.imageUrl;
+                      }
+                    }, [element.imageUrl]);
+                    
+                    return (
+                      <Image
+                        {...commonProps}
+                        width={element.width}
+                        height={element.height}
+                        image={imageElement || undefined}
+                      />
+                    );
+                  };
+                  
+                  return <ImageComponent />;
+                
                 default:
                   return null;
               }
             })}
+            
+            {/* Transformer for resizing */}
+            <Transformer
+              ref={transformerRef}
+              keepRatio={selectedElementId ? elements.find(el => el.id === selectedElementId)?.type === 'image' : false}
+              enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+              onTransformEnd={handleTransformEnd}
+            />
           </Layer>
         </Stage>
       </div>

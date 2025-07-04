@@ -23,8 +23,9 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
     format: 'png',
   });
 
-  const FIXED_WIDTH = 1160;
-  const FIXED_HEIGHT = 406;
+  // エクスポート用の固定サイズ
+  const EXPORT_WIDTH = 1160;
+  const EXPORT_HEIGHT = 406;
 
   // キャンバスの設定から向きを自動判定
   const orientation = config.orientation;
@@ -49,34 +50,33 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
     try {
       console.log('Generating image from stage...');
-      // Konva Stageから画像データを取得
-      // 縦向きの場合は幅と高さを入れ替えて取得
-      const exportWidth = orientation === 'portrait' ? FIXED_HEIGHT : FIXED_WIDTH;
-      const exportHeight = orientation === 'portrait' ? FIXED_WIDTH : FIXED_HEIGHT;
       
-      let dataURL = stageRef.current.toDataURL({
+      // キャンバスの実際のサイズを取得
+      const canvasWidth = config.width;
+      const canvasHeight = config.height;
+      
+      // スケーリング比率を計算（縦横比を保持）
+      const scaleX = EXPORT_WIDTH / canvasWidth;
+      const scaleY = EXPORT_HEIGHT / canvasHeight;
+      const scale = Math.min(scaleX, scaleY);
+      
+      // スケーリングされたサイズ
+      const scaledWidth = canvasWidth * scale;
+      const scaledHeight = canvasHeight * scale;
+      
+      console.log(`Canvas size: ${canvasWidth} × ${canvasHeight}`);
+      console.log(`Export size: ${EXPORT_WIDTH} × ${EXPORT_HEIGHT}`);
+      console.log(`Scale: ${scale}, Scaled size: ${scaledWidth} × ${scaledHeight}`);
+      
+      // Konva Stageから画像データを取得（スケーリング適用）
+      const dataURL = stageRef.current.toDataURL({
         mimeType: 'image/png',
         quality: 1,
-        pixelRatio: 1,
-        width: exportWidth,
-        height: exportHeight,
+        pixelRatio: scale,
+        width: canvasWidth,
+        height: canvasHeight,
       });
       console.log('Image generated, dataURL length:', dataURL.length);
-
-      // 縦向きの場合は画像を90度回転させて横向きにする
-      if (orientation === 'portrait') {
-        console.log('Export: Portrait mode detected, rotating image to landscape...');
-        try {
-          dataURL = await rotateImage(dataURL, -90);
-          console.log('Export: Image rotation completed');
-        } catch (error) {
-          console.error('Export: Image rotation failed:', error);
-          setExportError('Image rotation failed');
-          return;
-        }
-      } else {
-        console.log('Export: Landscape mode, no rotation needed');
-      }
 
       console.log('Setting preview URL...');
       // プレビュー用のURLを設定
@@ -124,33 +124,29 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
     try {
       console.log('Generating image from stage...');
-      // 縦向きの場合は幅と高さを入れ替えて取得
-      const exportWidth = orientation === 'portrait' ? FIXED_HEIGHT : FIXED_WIDTH;
-      const exportHeight = orientation === 'portrait' ? FIXED_WIDTH : FIXED_HEIGHT;
       
-      let dataURL = stageRef.current.toDataURL({
+      // キャンバスの実際のサイズを取得
+      const canvasWidth = config.width;
+      const canvasHeight = config.height;
+      
+      // スケーリング比率を計算（縦横比を保持）
+      const scaleX = EXPORT_WIDTH / canvasWidth;
+      const scaleY = EXPORT_HEIGHT / canvasHeight;
+      const scale = Math.min(scaleX, scaleY);
+      
+      console.log(`Canvas size: ${canvasWidth} × ${canvasHeight}`);
+      console.log(`Export size: ${EXPORT_WIDTH} × ${EXPORT_HEIGHT}`);
+      console.log(`Scale: ${scale}`);
+      
+      // Konva Stageから画像データを取得（スケーリング適用）
+      const dataURL = stageRef.current.toDataURL({
         mimeType: 'image/png',
         quality: 1,
-        pixelRatio: 1,
-        width: exportWidth,
-        height: exportHeight,
+        pixelRatio: scale,
+        width: canvasWidth,
+        height: canvasHeight,
       });
       console.log('Image generated, dataURL length:', dataURL.length);
-
-      // 縦向きの場合は画像を90度回転させて横向きにする
-      if (orientation === 'portrait') {
-        console.log('Preview: Portrait mode detected, rotating image to landscape...');
-        try {
-          dataURL = await rotateImage(dataURL, -90);
-          console.log('Preview: Image rotation completed');
-        } catch (error) {
-          console.error('Preview: Image rotation failed:', error);
-          setExportError('Image rotation failed');
-          return;
-        }
-      } else {
-        console.log('Preview: Landscape mode, no rotation needed');
-      }
 
       console.log('Setting preview URL...');
       setPreviewUrl(dataURL);
@@ -163,56 +159,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
     }
   };
 
-  // 画像を回転させる関数
-  const rotateImage = (dataURL: string, degrees: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        reject(new Error('Canvas context not available'));
-        return;
-      }
 
-      const img = new Image();
-
-      img.onload = () => {
-        console.log(`Original image size: ${img.width} × ${img.height}`);
-        
-        // 90度回転の場合、幅と高さを入れ替え
-        canvas.width = img.height;
-        canvas.height = img.width;
-        
-        console.log(`Rotated canvas size: ${canvas.width} × ${canvas.height}`);
-
-        // 背景を白で塗りつぶし
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // キャンバスの中心に移動
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        // 90度回転
-        ctx.rotate((degrees * Math.PI) / 180);
-        // 画像を描画（中心を原点として）
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        
-        console.log('Image rotation transformation applied');
-
-        const rotatedDataURL = canvas.toDataURL('image/png');
-        console.log('Rotated image data URL generated');
-        resolve(rotatedDataURL);
-      };
-
-      img.onerror = (error) => {
-        console.error('Image loading error:', error);
-        reject(error);
-      };
-
-      // CORS対応のため、crossOriginを設定
-      img.crossOrigin = 'anonymous';
-      img.src = dataURL;
-    });
-  };
 
   const handleSettingChange = (key: string, value: string | number) => {
     console.log(`Setting change: ${key} = ${value}`);
@@ -269,7 +216,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                       フォーマット: BMP (24bit RGB)
                     </p>
                     <p className="text-sm text-gray-600">
-                      サイズ: {FIXED_WIDTH} × {FIXED_HEIGHT} px
+                      サイズ: {EXPORT_WIDTH} × {EXPORT_HEIGHT} px
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {orientation === 'portrait' 

@@ -131,6 +131,80 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ className }) => {
     );
   };
 
+  const renderImageProperties = () => {
+    if (selectedElement.type !== 'image') return null;
+
+    const aspectRatio = selectedElement.width / selectedElement.height;
+
+    const handleResizeWithRatio = (newWidth: number) => {
+      const newHeight = newWidth / aspectRatio;
+      handlePropertyChange('width', Math.round(newWidth));
+      handlePropertyChange('height', Math.round(newHeight));
+    };
+
+
+
+    return (
+      <div className="space-y-4">
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs text-gray-700 mb-1">
+              比率を保持してリサイズ (現在の比率: {aspectRatio.toFixed(2)})
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="number"
+                value={Math.round(selectedElement.width)}
+                onChange={(e) => {
+                  const newWidth = parseInt(e.target.value) || 1;
+                  handleResizeWithRatio(newWidth);
+                }}
+                className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                min="1"
+                placeholder="幅"
+              />
+              <span className="flex items-center text-gray-500">×</span>
+              <input
+                type="number"
+                value={Math.round(selectedElement.height)}
+                onChange={(e) => {
+                  const newHeight = parseInt(e.target.value) || 1;
+                  const newWidth = newHeight * aspectRatio;
+                  handlePropertyChange('width', Math.round(newWidth));
+                  handlePropertyChange('height', Math.round(newHeight));
+                }}
+                className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                min="1"
+                placeholder="高さ"
+              />
+            </div>
+          </div>
+          
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleResizeWithRatio(100)}
+              className="flex-1 p-2 text-xs bg-gray-50 border border-gray-200 text-gray-700 rounded hover:bg-gray-100 transition-colors"
+            >
+              小 (100px)
+            </button>
+            <button
+              onClick={() => handleResizeWithRatio(150)}
+              className="flex-1 p-2 text-xs bg-blue-50 border border-blue-200 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+            >
+              中 (150px)
+            </button>
+            <button
+              onClick={() => handleResizeWithRatio(200)}
+              className="flex-1 p-2 text-xs bg-gray-50 border border-gray-200 text-gray-700 rounded hover:bg-gray-100 transition-colors"
+            >
+              大 (200px)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderShapeProperties = () => {
     if (!['rectangle', 'circle', 'line'].includes(selectedElement.type)) return null;
 
@@ -228,28 +302,31 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ className }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs text-gray-700 mb-1">Width</label>
-              <input
-                type="number"
-                value={Math.round(selectedElement.width)}
-                onChange={(e) => handlePropertyChange('width', parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
-                min="1"
-              />
+          {/* Show regular size inputs for non-image elements */}
+          {selectedElement.type !== 'image' && (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-gray-700 mb-1">Width</label>
+                <input
+                  type="number"
+                  value={Math.round(selectedElement.width)}
+                  onChange={(e) => handlePropertyChange('width', parseInt(e.target.value))}
+                  className="w-full p-2 border border-gray-300 rounded text-sm"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-700 mb-1">Height</label>
+                <input
+                  type="number"
+                  value={Math.round(selectedElement.height)}
+                  onChange={(e) => handlePropertyChange('height', parseInt(e.target.value))}
+                  className="w-full p-2 border border-gray-300 rounded text-sm"
+                  min="1"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs text-gray-700 mb-1">Height</label>
-              <input
-                type="number"
-                value={Math.round(selectedElement.height)}
-                onChange={(e) => handlePropertyChange('height', parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
-                min="1"
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Transform */}
@@ -288,6 +365,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ className }) => {
 
         {/* Type-specific properties */}
         {renderTextProperties()}
+        {renderImageProperties()}
         {renderShapeProperties()}
 
         {/* Element Info */}

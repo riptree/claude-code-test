@@ -299,17 +299,38 @@ export const createLineElement = (x: number = 100, y: number = 100): CanvasEleme
   points: [0, 0, 100, 0],
 });
 
-export const createImageElement = (imageUrl: string, x: number = 100, y: number = 100, width: number = 100, height: number = 100): CanvasElement => ({
-  id: generateElementId('image'),
-  type: 'image',
-  x,
-  y,
-  width,
-  height,
-  rotation: 0,
-  opacity: 1,
-  fill: '',
-  stroke: '',
-  strokeWidth: 0,
-  imageUrl,
-});
+export const createImageElement = (imageUrl: string, x: number = 100, y: number = 100, originalWidth: number = 100, originalHeight: number = 100): CanvasElement => {
+  // 画像を適切なサイズに縮小（最大150px）
+  const maxSize = 150;
+  const aspectRatio = originalWidth / originalHeight;
+  
+  let width = originalWidth;
+  let height = originalHeight;
+  
+  if (width > maxSize || height > maxSize) {
+    if (aspectRatio > 1) {
+      // 横長の画像
+      width = maxSize;
+      height = maxSize / aspectRatio;
+    } else {
+      // 縦長の画像
+      height = maxSize;
+      width = maxSize * aspectRatio;
+    }
+  }
+  
+  return {
+    id: generateElementId('image'),
+    type: 'image',
+    x,
+    y,
+    width: Math.round(width),
+    height: Math.round(height),
+    rotation: 0,
+    opacity: 1,
+    fill: '',
+    stroke: '',
+    strokeWidth: 0,
+    imageUrl,
+  };
+};
