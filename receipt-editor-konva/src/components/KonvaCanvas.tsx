@@ -226,6 +226,9 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
           padding: '20px',
           maxWidth: '100%',
           maxHeight: '100%',
+          filter: config.monochromePreview 
+            ? `grayscale(1) contrast(${Math.min(config.monochromeContrast * 1.2, 2.5)})`
+            : 'none'
         }}
       >
         <Stage

@@ -18,7 +18,6 @@ import {
   FiMove,
   FiTrash2,
   FiCopy,
-  FiLayers,
   FiArrowUp,
   FiArrowDown,
 } from 'react-icons/fi';
@@ -168,8 +167,84 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
               <FiGrid className="inline mr-2" />
               Grid
             </button>
+
+            <button
+              onClick={() => updateConfig({ monochromePreview: !config.monochromePreview })}
+              className={`w-full p-2 text-sm border rounded-lg transition-colors ${
+                config.monochromePreview
+                  ? 'bg-gray-800 border-gray-600 text-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              ⚫ {config.monochromePreview ? 'Color View' : 'B&W Preview'}
+            </button>
           </div>
         </div>
+
+        {/* Monochrome Settings */}
+        {config.monochromePreview && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-900">B&W Settings</h3>
+            <div className="space-y-3">
+                                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Threshold: {config.monochromeThreshold}
+                        </label>
+                        <input
+                          type="range"
+                          min="80"
+                          max="180"
+                          step="5"
+                          value={config.monochromeThreshold}
+                          onChange={(e) => updateConfig({ monochromeThreshold: parseInt(e.target.value) })}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>Dark</span>
+                          <span>Light</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Contrast: {config.monochromeContrast.toFixed(1)}
+                        </label>
+                        <input
+                          type="range"
+                          min="0.5"
+                          max="1.5"
+                          step="0.1"
+                          value={config.monochromeContrast}
+                          onChange={(e) => updateConfig({ monochromeContrast: parseFloat(e.target.value) })}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>Soft</span>
+                          <span>Sharp</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Brightness: {config.monochromeBrightness > 0 ? '+' : ''}{config.monochromeBrightness}
+                        </label>
+                        <input
+                          type="range"
+                          min="-30"
+                          max="30"
+                          step="5"
+                          value={config.monochromeBrightness}
+                          onChange={(e) => updateConfig({ monochromeBrightness: parseInt(e.target.value) })}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>Darker</span>
+                          <span>Brighter</span>
+                        </div>
+                      </div>
+            </div>
+          </div>
+        )}
 
         {/* History */}
         <div className="space-y-2">

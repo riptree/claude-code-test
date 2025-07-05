@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { FiX, FiDownload, FiImage } from 'react-icons/fi';
 import { KonvaStage } from '@/lib/types/konva';
 import { useCanvasStore } from '@/lib/stores/canvasStore';
-import { dataURLToBMP } from '@/lib/canvas/bmpExporter';
+import { dataURLToBMP, MonochromeOptions } from '@/lib/canvas/bmpExporter';
+import { CanvasConfig } from '@/lib/types';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -78,14 +79,22 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       });
       console.log('Image generated, dataURL length:', dataURL.length);
 
-      console.log('Setting preview URL...');
-      // プレビュー用のURLを設定
-      setPreviewUrl(dataURL);
-
       console.log('Creating download link...');
-      // PNG→BMP変換を行う
+      
+      // キャンバスと同じフィルター効果を適用してからBMP変換
+      let processedDataURL = dataURL;
+      if (config.monochromePreview) {
+        processedDataURL = await applyCanvasFilter(dataURL, config);
+      }
+      
+      // PNG→BMP変換を行う（フィルター適用済みの場合は白黒変換を無効化）
       console.log('Converting PNG to BMP...');
-      const bmpBlob = await dataURLToBMP(dataURL);
+      const shouldApplyMonochrome = !config.monochromePreview; // フィルター適用済みの場合は無効化
+      const monochromeOptions: MonochromeOptions = {
+        threshold: config.monochromeThreshold,
+      };
+      console.log('Monochrome options being passed:', monochromeOptions);
+      const bmpBlob = await dataURLToBMP(processedDataURL, shouldApplyMonochrome, monochromeOptions);
       console.log('BMP conversion completed');
 
       // ダウンロードリンクを作成
@@ -149,7 +158,17 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       console.log('Image generated, dataURL length:', dataURL.length);
 
       console.log('Setting preview URL...');
-      setPreviewUrl(dataURL);
+      
+      // キャンバスと同じCSSフィルター効果を適用
+      if (config.monochromePreview) {
+        // キャンバスと同じフィルター効果を適用したプレビュー
+        const filteredDataURL = await applyCanvasFilter(dataURL, config);
+        setPreviewUrl(filteredDataURL);
+      } else {
+        // フィルターなしのプレビュー
+        setPreviewUrl(dataURL);
+      }
+      
       console.log('Preview completed successfully');
     } catch (error) {
       console.error('Preview error:', error);
@@ -159,6 +178,51 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
     }
   };
 
+  // キャンバスと同じCSSフィルター効果を適用する関数
+  const applyCanvasFilter = async (dataURL: string, config: CanvasConfig): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        resolve(dataURL);
+        return;
+      }
+      
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        // 白背景で塗りつぶし
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 画像を描画
+        ctx.drawImage(img, 0, 0);
+        
+        // キャンバスと同じフィルター効果を適用
+        const filterCanvas = document.createElement('canvas');
+        const filterCtx = filterCanvas.getContext('2d');
+        
+        if (!filterCtx) {
+          resolve(dataURL);
+          return;
+        }
+        
+        filterCanvas.width = canvas.width;
+        filterCanvas.height = canvas.height;
+        
+        // フィルター効果を適用
+        filterCtx.filter = `grayscale(1) contrast(${Math.min(config.monochromeContrast * 1.2, 2.5)})`;
+        filterCtx.drawImage(canvas, 0, 0);
+        
+        resolve(filterCanvas.toDataURL('image/png'));
+      };
+      
+      img.src = dataURL;
+    });
+  };
 
 
   const handleSettingChange = (key: string, value: string | number) => {
@@ -210,10 +274,12 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                     />
                   </div>
 
+
+
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-gray-900 mb-2">Export Settings</h4>
                     <p className="text-sm text-gray-600">
-                      フォーマット: BMP (24bit RGB)
+                      フォーマット: BMP (白黒2階調)
                     </p>
                     <p className="text-sm text-gray-600">
                       サイズ: {EXPORT_WIDTH} × {EXPORT_HEIGHT} px
@@ -265,7 +331,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                 <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 text-center">
                   <FiImage size={48} className="mx-auto text-gray-400 mb-4" />
                   <p className="text-sm text-gray-500">
-                    Click "Preview" to see how your receipt will look
+                    Click &quot;Preview&quot; to see how your receipt will look
                   </p>
                 </div>
               )}

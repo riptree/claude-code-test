@@ -32,6 +32,10 @@ export interface CanvasConfig {
   maxFileSize: number;
   exportFormat: 'bmp';
   colorMode: 'monochrome';
+  monochromePreview: boolean;
+  monochromeThreshold: number;
+  monochromeContrast: number;
+  monochromeBrightness: number;
 }
 
 export type Tool = 'select' | 'text' | 'rectangle' | 'circle' | 'line' | 'image' | 'pan' | 'zoom';

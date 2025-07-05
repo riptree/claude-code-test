@@ -155,10 +155,17 @@ export const canvasToBMP = (canvas: HTMLCanvasElement): Blob => {
   return new Blob([bmpData], { type: 'image/bmp' });
 };
 
+export interface MonochromeOptions {
+  threshold?: number;
+  contrast?: number;
+  brightness?: number;
+  useAdaptiveThreshold?: boolean;
+}
+
 /**
  * DataURLからBMPバイナリを生成する
  */
-export const dataURLToBMP = (dataURL: string): Promise<Blob> => {
+export const dataURLToBMP = (dataURL: string, monochrome: boolean = false, monochromeOptions?: MonochromeOptions): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -180,6 +187,38 @@ export const dataURLToBMP = (dataURL: string): Promise<Blob> => {
       
       // 画像を描画
       ctx.drawImage(img, 0, 0);
+      
+              // 白黒変換処理（キャンバスと同じシンプルな処理）
+          if (monochrome) {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // オプションのデフォルト値
+            const options = {
+              threshold: 128,
+              ...monochromeOptions
+            };
+            
+            // シンプルなグレースケール変換と白黒変換
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              
+              // グレースケール変換
+              const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+              
+              // 白黒変換（キャンバスプレビューと同じ閾値）
+              const bw = gray > options.threshold ? 255 : 0;
+              
+              data[i] = bw;     // Red
+              data[i + 1] = bw; // Green
+              data[i + 2] = bw; // Blue
+              // Alpha channel (data[i + 3]) remains unchanged
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+          }
       
       try {
         const bmpBlob = canvasToBMP(canvas);
