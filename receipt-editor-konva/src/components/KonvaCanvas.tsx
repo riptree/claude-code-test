@@ -1,40 +1,14 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Stage, Layer, Rect, Text, Circle, Line, Image, Transformer } from 'react-konva';
+import { Stage as KonvaStage } from 'konva/lib/Stage';
+import { KonvaEventObject } from 'konva/lib/Node';
+import { Stage, Layer, Rect, Text, Circle, Line, Transformer } from 'react-konva';
+import { Transformer as KonvaTransformer } from 'konva/lib/shapes/Transformer';
+
 import { useCanvasStore } from '@/lib/stores/canvasStore';
-
-// Konvaの型を動的インポート用に定義
-type KonvaStage = {
-  toDataURL: (config?: {
-    mimeType?: string;
-    quality?: number;
-    pixelRatio?: number;
-    width?: number;
-    height?: number;
-  }) => string;
-  getPointerPosition: () => { x: number; y: number } | null;
-  x: () => number;
-  y: () => number;
-  scaleX: () => number;
-  scaleY: () => number;
-  width: () => number;
-  height: () => number;
-  [key: string]: unknown;
-};
-
-type KonvaEvent = {
-  target: {
-    getStage: () => KonvaStage | null;
-    x: () => number;
-    y: () => number;
-    scaleX: () => number;
-    scaleY: () => number;
-    width: () => number;
-    height: () => number;
-    rotation: () => number;
-  };
-};
+import { CanvasElement } from '@/lib/types';
+import ImageElement from '@/components/ImageElement';
 
 interface KonvaCanvasProps {
   className?: string;
@@ -44,7 +18,7 @@ interface KonvaCanvasProps {
 const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: externalStageRef }) => {
   const internalStageRef = useRef<KonvaStage | null>(null);
   const stageRef = externalStageRef || internalStageRef;
-  const transformerRef = useRef<any>(null);
+  const transformerRef = useRef<KonvaTransformer>(null);
   
   const {
     config,
@@ -79,7 +53,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
   }, [selectedElementId, stageRef]);
 
   // Handle stage click for adding elements
-  const handleStageClick = (e: KonvaEvent) => {
+  const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
     if (tool === 'select') {
       if (e.target === e.target.getStage()) {
         selectElement(null);
@@ -97,7 +71,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
     
     const elementId = `${tool}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    let newElement: any;
+    let newElement: CanvasElement;
 
     switch (tool) {
       case 'text':
@@ -185,7 +159,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
   };
 
   // Handle element drag
-  const handleElementDragEnd = (elementId: string, e: any) => {
+  const handleElementDragEnd = (elementId: string, e: KonvaEventObject<MouseEvent>) => {
     const node = e.target;
     updateElement(elementId, {
       x: node.x(),
@@ -194,7 +168,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
   };
 
   // Handle transformer changes
-  const handleTransformEnd = (e: any) => {
+  const handleTransformEnd = (e: KonvaEventObject<MouseEvent>) => {
     const node = e.target;
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
@@ -221,9 +195,8 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
       <div 
         className="bg-white shadow-lg border border-gray-300 rounded-lg overflow-hidden"
         style={{
-          width: config.width + 40,
-          height: config.height + 40,
-          padding: '20px',
+          width: config.width,
+          height: config.height,
           maxWidth: '100%',
           maxHeight: '100%',
           filter: config.monochromePreview 
@@ -232,7 +205,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
         }}
       >
         <Stage
-          ref={stageRef as any}
+          ref={stageRef}
           width={config.width}
           height={config.height}
           scaleX={zoom}
@@ -240,7 +213,6 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
           x={panX}
           y={panY}
           onClick={handleStageClick}
-          onTap={handleStageClick}
         >
           <Layer>
             {/* Canvas background */}
@@ -265,7 +237,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                 opacity: element.opacity,
                 draggable: true,
                 onClick: () => handleElementClick(element.id),
-                onDragEnd: (e: any) => handleElementDragEnd(element.id, e),
+                onDragEnd: (e: KonvaEventObject<MouseEvent>) => handleElementDragEnd(element.id, e),
                 stroke: isSelected ? '#0066cc' : undefined,
                 strokeWidth: isSelected ? 2 : undefined,
                 strokeScaleEnabled: false,
@@ -322,28 +294,12 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                   );
                 
                 case 'image':
-                  const ImageComponent = () => {
-                    const [imageElement, setImageElement] = React.useState<HTMLImageElement | null>(null);
-                    
-                    React.useEffect(() => {
-                      if (element.imageUrl) {
-                        const img = new window.Image();
-                        img.onload = () => setImageElement(img);
-                        img.src = element.imageUrl;
-                      }
-                    }, [element.imageUrl]);
-                    
-                    return (
-                      <Image
-                        {...commonProps}
-                        width={element.width}
-                        height={element.height}
-                        image={imageElement || undefined}
-                      />
-                    );
-                  };
-                  
-                  return <ImageComponent />;
+                  return (
+                    <ImageElement
+                      element={element as CanvasElement & { type: 'image' }}
+                      commonProps={commonProps}
+                    />
+                  );
                 
                 default:
                   return null;
