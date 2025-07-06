@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { KonvaStage } from '@/lib/types/konva';
+import { Stage as KonvaStage } from 'konva/lib/Stage';
 
 interface ReceiptCanvasProps {
   className?: string;
