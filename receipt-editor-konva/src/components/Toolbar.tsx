@@ -126,7 +126,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
                 className={`p-1.5 rounded-lg border transition-colors ${
                   tool === toolItem.id
                     ? 'bg-blue-100 border-blue-300 text-blue-700'
-                    : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                    : 'bg-gray-50 border-gray-200 text-gray-900 hover:bg-gray-100'
                 }`}
                 title={`${toolItem.label} (${toolItem.shortcut})`}
               >
@@ -145,9 +145,9 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
           <div className="space-y-1.5">
             <button
               onClick={handleOrientationToggle}
-              className="w-full p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+              className="w-full p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
             >
-              {config.orientation === 'landscape' ? '📱 Portrait' : '🖥️ Landscape'}
+              {config.orientation === 'landscape' ? '縦向きに変更' : '横向きに変更'}
             </button>
             
 
@@ -162,7 +162,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
             <button
               onClick={undo}
               disabled={!canUndo()}
-              className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-900"
             >
               <FiRotateCcw className="inline mr-1" />
               Undo
@@ -170,7 +170,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
             <button
               onClick={redo}
               disabled={!canRedo()}
-              className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-900"
             >
               <FiRotateCw className="inline mr-1" />
               Redo
@@ -184,16 +184,16 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
           <div className="flex items-center space-x-2">
             <button
               onClick={handleZoomOut}
-              className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
             >
               <FiZoomOut />
             </button>
-            <div className="flex-1 text-center text-sm text-gray-600">
+            <div className="flex-1 text-center text-sm text-gray-900">
               {Math.round(zoom * 100)}%
             </div>
             <button
               onClick={handleZoomIn}
-              className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
             >
               <FiZoomIn />
             </button>
@@ -214,7 +214,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
             <div className="space-y-1.5">
               <button
                 onClick={() => duplicateElement(selectedElementId)}
-                className="w-full p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                className="w-full p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
               >
                 <FiCopy className="inline mr-2" />
                 Duplicate
@@ -223,7 +223,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => bringToFront(selectedElementId)}
-                  className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
                   title="Bring to Front"
                 >
                   <FiArrowUp className="inline mr-1" />
@@ -231,7 +231,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
                 </button>
                 <button
                   onClick={() => sendToBack(selectedElementId)}
-                  className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
                   title="Send to Back"
                 >
                   <FiArrowDown className="inline mr-1" />
