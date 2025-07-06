@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { FiX, FiDownload, FiImage } from 'react-icons/fi';
 import { Stage as KonvaStage } from 'konva/lib/Stage';
 import { useCanvasStore } from '@/lib/stores/canvasStore';
@@ -33,25 +34,16 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
   if (!isOpen) return null;
 
-  console.log('ExportDialog opened with settings:', exportSettings);
-
   const handleExport = async () => {
-    console.log('Export button clicked');
-    console.log('Current orientation:', orientation);
-    
     if (!stageRef.current) {
-      console.log('Stage ref is null');
       setExportError('Canvas not found');
       return;
     }
 
-    console.log('Stage ref found, starting export...');
     setIsExporting(true);
     setExportError(null);
 
     try {
-      console.log('Generating image from stage...');
-      
       // キャンバスの実際のサイズを取得
       const canvasWidth = config.width;
       const canvasHeight = config.height;
@@ -61,14 +53,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       const scaleY = EXPORT_HEIGHT / canvasHeight;
       const scale = Math.min(scaleX, scaleY);
       
-      // スケーリングされたサイズ
-      const scaledWidth = canvasWidth * scale;
-      const scaledHeight = canvasHeight * scale;
-      
-      console.log(`Canvas size: ${canvasWidth} × ${canvasHeight}`);
-      console.log(`Export size: ${EXPORT_WIDTH} × ${EXPORT_HEIGHT}`);
-      console.log(`Scale: ${scale}, Scaled size: ${scaledWidth} × ${scaledHeight}`);
-      
       // Konva Stageから画像データを取得（スケーリング適用）
       const dataURL = stageRef.current.toDataURL({
         mimeType: 'image/png',
@@ -77,10 +61,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
         width: canvasWidth,
         height: canvasHeight,
       });
-      console.log('Image generated, dataURL length:', dataURL.length);
 
-      console.log('Creating download link...');
-      
       // キャンバスと同じフィルター効果を適用してからBMP変換
       let processedDataURL = dataURL;
       if (config.monochromePreview) {
@@ -88,14 +69,11 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       }
       
       // PNG→BMP変換を行う（フィルター適用済みの場合は白黒変換を無効化）
-      console.log('Converting PNG to BMP...');
       const shouldApplyMonochrome = !config.monochromePreview; // フィルター適用済みの場合は無効化
       const monochromeOptions: MonochromeOptions = {
         threshold: config.monochromeThreshold,
       };
-      console.log('Monochrome options being passed:', monochromeOptions);
       const bmpBlob = await dataURLToBMP(processedDataURL, shouldApplyMonochrome, monochromeOptions);
-      console.log('BMP conversion completed');
 
       // ダウンロードリンクを作成
       const link = document.createElement('a');
@@ -107,7 +85,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       
       // URLオブジェクトを解放
       URL.revokeObjectURL(link.href);
-      console.log('Download completed');
 
     } catch (error) {
       console.error('Export error:', error);
@@ -118,22 +95,15 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
   };
 
   const handlePreview = async () => {
-    console.log('Preview button clicked');
-    console.log('Current orientation:', orientation);
-    
     if (!stageRef.current) {
-      console.log('Stage ref is null');
       setExportError('Canvas not found');
       return;
     }
 
-    console.log('Stage ref found, starting preview...');
     setIsExporting(true);
     setExportError(null);
 
     try {
-      console.log('Generating image from stage...');
-      
       // キャンバスの実際のサイズを取得
       const canvasWidth = config.width;
       const canvasHeight = config.height;
@@ -143,10 +113,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       const scaleY = EXPORT_HEIGHT / canvasHeight;
       const scale = Math.min(scaleX, scaleY);
       
-      console.log(`Canvas size: ${canvasWidth} × ${canvasHeight}`);
-      console.log(`Export size: ${EXPORT_WIDTH} × ${EXPORT_HEIGHT}`);
-      console.log(`Scale: ${scale}`);
-      
       // Konva Stageから画像データを取得（スケーリング適用）
       const dataURL = stageRef.current.toDataURL({
         mimeType: 'image/png',
@@ -155,10 +121,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
         width: canvasWidth,
         height: canvasHeight,
       });
-      console.log('Image generated, dataURL length:', dataURL.length);
 
-      console.log('Setting preview URL...');
-      
       // キャンバスと同じCSSフィルター効果を適用
       if (config.monochromePreview) {
         // キャンバスと同じフィルター効果を適用したプレビュー
@@ -168,8 +131,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
         // フィルターなしのプレビュー
         setPreviewUrl(dataURL);
       }
-      
-      console.log('Preview completed successfully');
     } catch (error) {
       console.error('Preview error:', error);
       setExportError(error instanceof Error ? error.message : 'Preview failed');
@@ -189,7 +150,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
         return;
       }
       
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         canvas.width = img.width;
         canvas.height = img.height;
@@ -226,15 +187,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
 
   const handleSettingChange = (key: string, value: string | number) => {
-    console.log(`Setting change: ${key} = ${value}`);
-    setExportSettings(prev => {
-      const newSettings = {
-        ...prev,
-        [key]: value,
-      };
-      console.log('New export settings:', newSettings);
-      return newSettings;
-    });
+    setExportSettings(prev => ({
+      ...prev,
+      [key]: value,
+    }));
     // Clear preview when settings change
     setPreviewUrl(null);
   };
@@ -320,11 +276,14 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
               {previewUrl ? (
                 <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                  <img
+                  <Image
                     src={previewUrl}
                     alt="Export preview"
+                    width={400}
+                    height={400}
                     className="max-w-full h-auto mx-auto border border-gray-300 rounded"
                     style={{ maxHeight: '400px' }}
+                    unoptimized
                   />
                 </div>
               ) : (
