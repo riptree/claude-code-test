@@ -229,7 +229,6 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
             {elements.map((element) => {
               const isSelected = element.id === selectedElementId;
               const commonProps = {
-                key: element.id,
                 id: element.id,
                 x: element.x,
                 y: element.y,
@@ -247,6 +246,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                 case 'text':
                   return (
                     <Text
+                      key={element.id}
                       {...commonProps}
                       text={element.text || 'Text'}
                       fontSize={element.fontSize || 16}
@@ -263,6 +263,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                 case 'rectangle':
                   return (
                     <Rect
+                      key={element.id}
                       {...commonProps}
                       width={element.width}
                       height={element.height}
@@ -275,6 +276,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                 case 'circle':
                   return (
                     <Circle
+                      key={element.id}
                       {...commonProps}
                       radius={Math.min(element.width, element.height) / 2}
                       fill={element.fill}
@@ -286,6 +288,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                 case 'line':
                   return (
                     <Line
+                      key={element.id}
                       {...commonProps}
                       points={element.points || [0, 0, element.width, 0]}
                       stroke={element.stroke}
@@ -296,6 +299,7 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
                 case 'image':
                   return (
                     <ImageElement
+                      key={element.id}
                       element={element as CanvasElement & { type: 'image' }}
                       commonProps={commonProps}
                     />
