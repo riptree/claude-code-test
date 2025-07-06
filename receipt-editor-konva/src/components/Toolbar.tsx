@@ -274,4 +274,4 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
   );
 };
 
-export default Toolbar;
+export { Toolbar };

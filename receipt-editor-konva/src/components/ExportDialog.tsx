@@ -319,4 +319,4 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
   );
 };
 
-export default ExportDialog;
+export { ExportDialog };

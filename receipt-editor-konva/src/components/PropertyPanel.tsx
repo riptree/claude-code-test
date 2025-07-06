@@ -24,7 +24,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ className }) => {
     );
   }
 
-  const handlePropertyChange = (property: keyof CanvasElement, value: any) => {
+  const handlePropertyChange = (property: keyof CanvasElement, value: string | number | boolean) => {
     updateElement(selectedElement.id, { [property]: value });
   };
 
@@ -383,4 +383,4 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({ className }) => {
   );
 };
 
-export default PropertyPanel;
+export { PropertyPanel };

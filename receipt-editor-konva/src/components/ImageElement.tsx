@@ -31,4 +31,4 @@ const ImageElement: React.FC<ImageElementProps> = ({ element, commonProps }) => 
   );
 };
 
-export default ImageElement; 
+export { ImageElement }; 

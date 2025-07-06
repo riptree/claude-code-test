@@ -8,7 +8,7 @@ import { Transformer as KonvaTransformer } from 'konva/lib/shapes/Transformer';
 
 import { useCanvasStore } from '@/lib/stores/canvasStore';
 import { CanvasElement } from '@/lib/types';
-import ImageElement from '@/components/ImageElement';
+import { ImageElement } from '@/components/ImageElement';
 
 interface KonvaCanvasProps {
   className?: string;
@@ -330,4 +330,4 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
   );
 };
 
-export default KonvaCanvas; 
+export { KonvaCanvas }; 

@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import ReceiptCanvas from '@/components/ReceiptCanvas';
-import Toolbar from '@/components/Toolbar';
-import PropertyPanel from '@/components/PropertyPanel';
-import ExportDialog from '@/components/ExportDialog';
+import { ReceiptCanvas } from '@/components/ReceiptCanvas';
+import { Toolbar } from '@/components/Toolbar';
+import { PropertyPanel } from '@/components/PropertyPanel';
+import { ExportDialog } from '@/components/ExportDialog';
 import { FiDownload } from 'react-icons/fi';
 import { Stage as KonvaStage } from 'konva/lib/Stage';
 

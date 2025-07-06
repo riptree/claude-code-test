@@ -10,7 +10,7 @@ interface ReceiptCanvasProps {
 }
 
 // React-Konvaを動的インポート
-const DynamicKonvaCanvas = dynamic(() => import('./KonvaCanvas'), { 
+const DynamicKonvaCanvas = dynamic(() => import('./KonvaCanvas').then(mod => ({ default: mod.KonvaCanvas })), { 
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg w-full h-96 max-w-4xl">
@@ -37,4 +37,4 @@ const ReceiptCanvas: React.FC<ReceiptCanvasProps> = ({ className, stageRef }) =>
   return <DynamicKonvaCanvas className={className} stageRef={stageRef} />;
 };
 
-export default ReceiptCanvas;
+export { ReceiptCanvas };
