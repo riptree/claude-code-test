@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { FiX, FiDownload, FiImage } from 'react-icons/fi';
-import { KonvaStage } from '@/lib/types/konva';
+import { Stage as KonvaStage } from 'konva/lib/Stage';
 import { useCanvasStore } from '@/lib/stores/canvasStore';
 import { dataURLToBMP, MonochromeOptions } from '@/lib/canvas/bmpExporter';
 import { CanvasConfig } from '@/lib/types';

@@ -6,7 +6,7 @@ import Toolbar from '@/components/Toolbar';
 import PropertyPanel from '@/components/PropertyPanel';
 import ExportDialog from '@/components/ExportDialog';
 import { FiDownload } from 'react-icons/fi';
-import { KonvaStage } from '@/lib/types/konva';
+import { Stage as KonvaStage } from 'konva/lib/Stage';
 
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
