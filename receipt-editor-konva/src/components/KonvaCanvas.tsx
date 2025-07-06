@@ -29,9 +29,6 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
     updateElement,
     addElement,
     setTool,
-    zoom,
-    panX,
-    panY,
   } = useCanvasStore();
 
   // Update transformer when selection changes
@@ -208,10 +205,6 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
           ref={stageRef}
           width={config.width}
           height={config.height}
-          scaleX={zoom}
-          scaleY={zoom}
-          x={panX}
-          y={panY}
           onClick={handleStageClick}
         >
           <Layer>
@@ -319,16 +312,6 @@ const KonvaCanvas: React.FC<KonvaCanvasProps> = ({ className, stageRef: external
             />
           </Layer>
         </Stage>
-      </div>
-      
-      {/* Canvas info */}
-      <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-        {config.width} × {config.height}px
-      </div>
-      
-      {/* Zoom info */}
-      <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-        {Math.round(zoom * 100)}%
       </div>
     </div>
   );

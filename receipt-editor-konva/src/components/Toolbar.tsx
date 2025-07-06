@@ -12,9 +12,6 @@ import {
   FiImage,
   FiRotateCcw,
   FiRotateCw,
-  FiZoomIn,
-  FiZoomOut,
-  FiMove,
   FiTrash2,
   FiCopy,
   FiArrowUp,
@@ -43,9 +40,6 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
     canUndo,
     canRedo,
     clearCanvas,
-    zoom,
-    setZoom,
-    resetView,
     addElement,
   } = useCanvasStore();
 
@@ -99,19 +93,6 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
     });
   };
 
-
-  const handleZoomIn = () => {
-    setZoom(zoom * 1.2);
-  };
-
-  const handleZoomOut = () => {
-    setZoom(zoom / 1.2);
-  };
-
-  const handleZoomReset = () => {
-    resetView();
-  };
-
   return (
     <div className={`bg-white border-r border-gray-300 ${className}`}>
       <div className="p-3 space-y-3">
@@ -149,11 +130,8 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
             >
               {config.orientation === 'landscape' ? '縦向きに変更' : '横向きに変更'}
             </button>
-            
-
           </div>
         </div>
-
 
         {/* History */}
         <div className="space-y-1.5">
@@ -178,53 +156,31 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
           </div>
         </div>
 
-        {/* Zoom */}
-        <div className="space-y-1.5">
-          <h3 className="text-sm font-medium text-gray-900">Zoom</h3>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleZoomOut}
-              className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
-            >
-              <FiZoomOut />
-            </button>
-            <div className="flex-1 text-center text-sm text-gray-900">
-              {Math.round(zoom * 100)}%
-            </div>
-            <button
-              onClick={handleZoomIn}
-              className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
-            >
-              <FiZoomIn />
-            </button>
-          </div>
-          <button
-            onClick={handleZoomReset}
-            className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <FiMove className="inline mr-2" />
-            Reset View
-          </button>
-        </div>
-
         {/* Element Actions */}
         {selectedElementId && (
           <div className="space-y-1.5">
             <h3 className="text-sm font-medium text-gray-900">Element</h3>
             <div className="space-y-1.5">
-              <button
-                onClick={() => duplicateElement(selectedElementId)}
-                className="w-full p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
-              >
-                <FiCopy className="inline mr-2" />
-                Duplicate
-              </button>
-              
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => duplicateElement(selectedElementId)}
+                  className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
+                >
+                  <FiCopy className="inline mr-1" />
+                  Copy
+                </button>
+                <button
+                  onClick={() => deleteElement(selectedElementId)}
+                  className="flex-1 p-1.5 text-sm bg-red-50 border border-red-200 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <FiTrash2 className="inline mr-1" />
+                  Delete
+                </button>
+              </div>
               <div className="flex space-x-2">
                 <button
                   onClick={() => bringToFront(selectedElementId)}
                   className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
-                  title="Bring to Front"
                 >
                   <FiArrowUp className="inline mr-1" />
                   Front
@@ -232,20 +188,11 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
                 <button
                   onClick={() => sendToBack(selectedElementId)}
                   className="flex-1 p-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-gray-900"
-                  title="Send to Back"
                 >
                   <FiArrowDown className="inline mr-1" />
                   Back
                 </button>
               </div>
-              
-              <button
-                onClick={() => deleteElement(selectedElementId)}
-                className="w-full p-1.5 text-sm bg-red-50 border border-red-200 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
-              >
-                <FiTrash2 className="inline mr-2" />
-                Delete
-              </button>
             </div>
           </div>
         )}
@@ -254,7 +201,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ className }) => {
         <div className="space-y-1.5">
           <button
             onClick={clearCanvas}
-            className="w-full p-1.5 text-sm bg-red-50 border border-red-200 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+            className="w-full p-2 text-sm bg-red-50 border border-red-200 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
           >
             <FiTrash2 className="inline mr-2" />
             Clear Canvas

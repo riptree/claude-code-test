@@ -38,7 +38,7 @@ export interface CanvasConfig {
   monochromeBrightness: number;
 }
 
-export type Tool = 'select' | 'text' | 'rectangle' | 'circle' | 'line' | 'image' | 'pan' | 'zoom';
+export type Tool = 'select' | 'text' | 'rectangle' | 'circle' | 'line' | 'image';
 
 export interface CanvasState {
   elements: CanvasElement[];
@@ -47,9 +47,6 @@ export interface CanvasState {
   config: CanvasConfig;
   history: CanvasElement[][];
   historyIndex: number;
-  zoom: number;
-  panX: number;
-  panY: number;
 }
 
 export interface CanvasActions {
@@ -67,9 +64,6 @@ export interface CanvasActions {
   duplicateElement: (id: string) => void;
   bringToFront: (id: string) => void;
   sendToBack: (id: string) => void;
-  setZoom: (zoom: number) => void;
-  setPan: (x: number, y: number) => void;
-  resetView: () => void;
 }
 
 export interface ExportOptions {

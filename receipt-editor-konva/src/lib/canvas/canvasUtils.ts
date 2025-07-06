@@ -101,54 +101,6 @@ export const calculateBoundingBox = (elements: CanvasElement[]): {
   };
 };
 
-export const fitStageToContent = (stage: Konva.Stage, elements: CanvasElement[], padding: number = 50): void => {
-  const bbox = calculateBoundingBox(elements);
-  
-  if (bbox.width === 0 || bbox.height === 0) {
-    stage.scale({ x: 1, y: 1 });
-    stage.position({ x: 0, y: 0 });
-    return;
-  }
-
-  const stageWidth = stage.width();
-  const stageHeight = stage.height();
-
-  const contentWidth = bbox.width + padding * 2;
-  const contentHeight = bbox.height + padding * 2;
-
-  const scaleX = stageWidth / contentWidth;
-  const scaleY = stageHeight / contentHeight;
-  const scale = Math.min(scaleX, scaleY);
-
-  stage.scale({ x: scale, y: scale });
-
-  const offsetX = (stageWidth - contentWidth * scale) / 2 - bbox.minX * scale + padding * scale;
-  const offsetY = (stageHeight - contentHeight * scale) / 2 - bbox.minY * scale + padding * scale;
-
-  stage.position({ x: offsetX, y: offsetY });
-};
-
-export const centerStageOnContent = (stage: Konva.Stage, elements: CanvasElement[]): void => {
-  const bbox = calculateBoundingBox(elements);
-  
-  if (bbox.width === 0 || bbox.height === 0) {
-    stage.position({ x: 0, y: 0 });
-    return;
-  }
-
-  const stageWidth = stage.width();
-  const stageHeight = stage.height();
-  const scale = stage.scaleX();
-
-  const contentCenterX = bbox.minX + bbox.width / 2;
-  const contentCenterY = bbox.minY + bbox.height / 2;
-
-  const offsetX = stageWidth / 2 - contentCenterX * scale;
-  const offsetY = stageHeight / 2 - contentCenterY * scale;
-
-  stage.position({ x: offsetX, y: offsetY });
-};
-
 export const isPointInElement = (point: { x: number; y: number }, element: CanvasElement): boolean => {
   const { x, y } = point;
   const { x: ex, y: ey, width, height } = element;

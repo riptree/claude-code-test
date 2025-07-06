@@ -29,9 +29,6 @@ export const useCanvasStore = create<CanvasStore>()(
     config: DEFAULT_CONFIG,
     history: [[]],
     historyIndex: 0,
-    zoom: 1,
-    panX: 0,
-    panY: 0,
 
     setTool: (tool: Tool) => {
       set({ tool });
@@ -219,18 +216,6 @@ export const useCanvasStore = create<CanvasStore>()(
           historyIndex: newHistory.length - 1,
         };
       });
-    },
-
-    setZoom: (zoom: number) => {
-      set({ zoom: Math.max(0.1, Math.min(5, zoom)) });
-    },
-
-    setPan: (x: number, y: number) => {
-      set({ panX: x, panY: y });
-    },
-
-    resetView: () => {
-      set({ zoom: 1, panX: 0, panY: 0 });
     },
   }))
 );
