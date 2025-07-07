@@ -221,73 +221,11 @@ export const useCanvasStore = create<CanvasStore>()(
 );
 
 // Generate unique ID for elements
-export const generateElementId = (type: string): string => {
+const generateElementId = (type: string): string => {
   return `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-// Default element factories
-export const createTextElement = (text: string = 'New Text', x: number = 100, y: number = 100): CanvasElement => ({
-  id: generateElementId('text'),
-  type: 'text',
-  x,
-  y,
-  width: 100,
-  height: 30,
-  rotation: 0,
-  opacity: 1,
-  fill: '#000000',
-  stroke: '',
-  strokeWidth: 0,
-  text,
-  fontSize: 16,
-  fontFamily: 'Arial',
-  fontStyle: 'normal',
-  textAlign: 'left',
-});
-
-export const createRectangleElement = (x: number = 100, y: number = 100): CanvasElement => ({
-  id: generateElementId('rectangle'),
-  type: 'rectangle',
-  x,
-  y,
-  width: 100,
-  height: 50,
-  rotation: 0,
-  opacity: 1,
-  fill: '#ffffff',
-  stroke: '#000000',
-  strokeWidth: 2,
-});
-
-export const createCircleElement = (x: number = 100, y: number = 100): CanvasElement => ({
-  id: generateElementId('circle'),
-  type: 'circle',
-  x,
-  y,
-  width: 80,
-  height: 80,
-  rotation: 0,
-  opacity: 1,
-  fill: '#ffffff',
-  stroke: '#000000',
-  strokeWidth: 2,
-});
-
-export const createLineElement = (x: number = 100, y: number = 100): CanvasElement => ({
-  id: generateElementId('line'),
-  type: 'line',
-  x,
-  y,
-  width: 100,
-  height: 2,
-  rotation: 0,
-  opacity: 1,
-  fill: '',
-  stroke: '#000000',
-  strokeWidth: 2,
-  points: [0, 0, 100, 0],
-});
-
+// Image element factory (used by Toolbar)
 export const createImageElement = (imageUrl: string, x: number = 100, y: number = 100, originalWidth: number = 100, originalHeight: number = 100): CanvasElement => {
   // 画像を適切なサイズに縮小（最大150px）
   const maxSize = 150;
