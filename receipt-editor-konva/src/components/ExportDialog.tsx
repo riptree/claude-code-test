@@ -15,23 +15,30 @@ interface ExportDialogProps {
 }
 
 const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }) => {
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportError, setExportError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { config } = useCanvasStore();
-
+  const [isExporting, setIsExporting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  
   const [exportSettings, setExportSettings] = useState({
     filename: 'receipt',
   });
 
-  // エクスポート用の固定サイズ
+  // エクスポートサイズの設定
   const EXPORT_WIDTH = 1160;
   const EXPORT_HEIGHT = 406;
 
   // キャンバスの設定から向きを自動判定
   const orientation = config.orientation;
 
-  // キャンバスと同じCSSフィルター効果を適用する関数
+  // 閾値計算の共通ロジック
+  const calculateThreshold = useCallback((config: CanvasConfig): number => {
+    const baseThreshold = 128;
+    const contrastFactor = config.monochromeContrast || 1;
+    return Math.max(50, Math.min(205, baseThreshold / contrastFactor));
+  }, []);
+
+  // キャンバスと同じCSSフィルター効果を適用し、2階調（白黒）に変換する関数
   const applyCanvasFilter = useCallback(async (dataURL: string, config: CanvasConfig): Promise<string> => {
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
@@ -66,16 +73,44 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
         filterCanvas.width = canvas.width;
         filterCanvas.height = canvas.height;
         
-        // フィルター効果を適用
+        // フィルター効果を適用（グレースケール + コントラスト）
         filterCtx.filter = `grayscale(1) contrast(${Math.min(config.monochromeContrast * 1.2, 2.5)})`;
         filterCtx.drawImage(canvas, 0, 0);
+        
+        // ImageDataを取得して2階調（白黒）に変換
+        const imageData = filterCtx.getImageData(0, 0, filterCanvas.width, filterCanvas.height);
+        const data = imageData.data;
+        
+        // 共通の閾値計算ロジックを使用
+        const threshold = calculateThreshold(config);
+        
+        // ピクセルごとに2階調変換
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // グレースケール値を計算（既にグレースケールだが念のため）
+          const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+          
+          // 2階調変換：閾値より大きければ白(255)、小さければ黒(0)
+          const binaryValue = gray > threshold ? 255 : 0;
+          
+          data[i] = binaryValue;     // Red
+          data[i + 1] = binaryValue; // Green
+          data[i + 2] = binaryValue; // Blue
+          // Alpha channel (data[i + 3]) はそのまま
+        }
+        
+        // 変換されたImageDataをcanvasに戻す
+        filterCtx.putImageData(imageData, 0, 0);
         
         resolve(filterCanvas.toDataURL('image/png'));
       };
       
       img.src = dataURL;
     });
-  }, []);
+  }, [calculateThreshold]);
 
   const handlePreview = useCallback(async () => {
     if (!stageRef.current) {
@@ -157,8 +192,11 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       // キャンバスと同じフィルター効果を適用してからBMP変換
       const processedDataURL = await applyCanvasFilter(dataURL, config);
       
-      // PNG→BMP変換を行う（フィルター適用済みなので白黒変換は無効化）
-      const bmpBlob = await dataURLToBMP(processedDataURL, 200);
+      // フィルター適用と同じ閾値計算ロジックを使用
+      const threshold = calculateThreshold(config);
+      
+      // PNG→BMP変換を行う（統一された閾値を使用）
+      const bmpBlob = await dataURLToBMP(processedDataURL, threshold);
 
       // ダウンロードリンクを作成
       const link = document.createElement('a');
