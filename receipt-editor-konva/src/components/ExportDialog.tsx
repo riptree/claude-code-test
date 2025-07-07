@@ -127,7 +127,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
     if (isOpen && stageRef.current) {
       handlePreview();
     }
-  }, [isOpen, handlePreview]);
+  }, [isOpen, handlePreview, stageRef]);
 
   if (!isOpen) return null;
 
