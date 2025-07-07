@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { FiX, FiDownload, FiImage } from 'react-icons/fi';
 import { Stage as KonvaStage } from 'konva/lib/Stage';
@@ -30,6 +30,104 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
   // キャンバスの設定から向きを自動判定
   const orientation = config.orientation;
+
+  // キャンバスと同じCSSフィルター効果を適用する関数
+  const applyCanvasFilter = useCallback(async (dataURL: string, config: CanvasConfig): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        resolve(dataURL);
+        return;
+      }
+      
+      const img = new window.Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        // 白背景で塗りつぶし
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 画像を描画
+        ctx.drawImage(img, 0, 0);
+        
+        // キャンバスと同じフィルター効果を適用
+        const filterCanvas = document.createElement('canvas');
+        const filterCtx = filterCanvas.getContext('2d');
+        
+        if (!filterCtx) {
+          resolve(dataURL);
+          return;
+        }
+        
+        filterCanvas.width = canvas.width;
+        filterCanvas.height = canvas.height;
+        
+        // フィルター効果を適用
+        filterCtx.filter = `grayscale(1) contrast(${Math.min(config.monochromeContrast * 1.2, 2.5)})`;
+        filterCtx.drawImage(canvas, 0, 0);
+        
+        resolve(filterCanvas.toDataURL('image/png'));
+      };
+      
+      img.src = dataURL;
+    });
+  }, []);
+
+  const handlePreview = useCallback(async () => {
+    if (!stageRef.current) {
+      setExportError('Canvas not found');
+      return;
+    }
+
+    setIsExporting(true);
+    setExportError(null);
+
+    try {
+      // キャンバスの実際のサイズを取得
+      const canvasWidth = config.width;
+      const canvasHeight = config.height;
+      
+      // スケーリング比率を計算（縦横比を保持）
+      const scaleX = EXPORT_WIDTH / canvasWidth;
+      const scaleY = EXPORT_HEIGHT / canvasHeight;
+      const scale = Math.min(scaleX, scaleY);
+      
+      // Konva Stageから画像データを取得（スケーリング適用）
+      const dataURL = stageRef.current.toDataURL({
+        mimeType: 'image/png',
+        quality: 1,
+        pixelRatio: scale,
+        width: canvasWidth,
+        height: canvasHeight,
+      });
+
+      // キャンバスと同じCSSフィルター効果を適用
+      if (config.monochromePreview) {
+        // キャンバスと同じフィルター効果を適用したプレビュー
+        const filteredDataURL = await applyCanvasFilter(dataURL, config);
+        setPreviewUrl(filteredDataURL);
+      } else {
+        // フィルターなしのプレビュー
+        setPreviewUrl(dataURL);
+      }
+    } catch (error) {
+      console.error('Preview error:', error);
+      setExportError(error instanceof Error ? error.message : 'Preview failed');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [stageRef, config, EXPORT_WIDTH, EXPORT_HEIGHT, applyCanvasFilter]);
+
+  // ダイアログが開かれたときに自動的にプレビューを生成
+  useEffect(() => {
+    if (isOpen && stageRef.current) {
+      handlePreview();
+    }
+  }, [isOpen, handlePreview]);
 
   if (!isOpen) return null;
 
@@ -91,97 +189,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const handlePreview = async () => {
-    if (!stageRef.current) {
-      setExportError('Canvas not found');
-      return;
-    }
-
-    setIsExporting(true);
-    setExportError(null);
-
-    try {
-      // キャンバスの実際のサイズを取得
-      const canvasWidth = config.width;
-      const canvasHeight = config.height;
-      
-      // スケーリング比率を計算（縦横比を保持）
-      const scaleX = EXPORT_WIDTH / canvasWidth;
-      const scaleY = EXPORT_HEIGHT / canvasHeight;
-      const scale = Math.min(scaleX, scaleY);
-      
-      // Konva Stageから画像データを取得（スケーリング適用）
-      const dataURL = stageRef.current.toDataURL({
-        mimeType: 'image/png',
-        quality: 1,
-        pixelRatio: scale,
-        width: canvasWidth,
-        height: canvasHeight,
-      });
-
-      // キャンバスと同じCSSフィルター効果を適用
-      if (config.monochromePreview) {
-        // キャンバスと同じフィルター効果を適用したプレビュー
-        const filteredDataURL = await applyCanvasFilter(dataURL, config);
-        setPreviewUrl(filteredDataURL);
-      } else {
-        // フィルターなしのプレビュー
-        setPreviewUrl(dataURL);
-      }
-    } catch (error) {
-      console.error('Preview error:', error);
-      setExportError(error instanceof Error ? error.message : 'Preview failed');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  // キャンバスと同じCSSフィルター効果を適用する関数
-  const applyCanvasFilter = async (dataURL: string, config: CanvasConfig): Promise<string> => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        resolve(dataURL);
-        return;
-      }
-      
-      const img = new window.Image();
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        
-        // 白背景で塗りつぶし
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // 画像を描画
-        ctx.drawImage(img, 0, 0);
-        
-        // キャンバスと同じフィルター効果を適用
-        const filterCanvas = document.createElement('canvas');
-        const filterCtx = filterCanvas.getContext('2d');
-        
-        if (!filterCtx) {
-          resolve(dataURL);
-          return;
-        }
-        
-        filterCanvas.width = canvas.width;
-        filterCanvas.height = canvas.height;
-        
-        // フィルター効果を適用
-        filterCtx.filter = `grayscale(1) contrast(${Math.min(config.monochromeContrast * 1.2, 2.5)})`;
-        filterCtx.drawImage(canvas, 0, 0);
-        
-        resolve(filterCanvas.toDataURL('image/png'));
-      };
-      
-      img.src = dataURL;
-    });
   };
 
 
@@ -251,12 +258,18 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
               <div className="flex space-x-2">
                 <button
-                  onClick={handlePreview}
+                  onClick={handleExport}
                   disabled={isExporting}
-                  className="flex-1 flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <FiImage className="mr-2" />
-                  {isExporting ? 'Generating...' : 'Preview'}
+                  <FiDownload className="mr-2" />
+                  {isExporting ? 'Exporting...' : 'Export & Download'}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
@@ -294,22 +307,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                 </div>
               )}
 
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleExport}
-                  disabled={isExporting}
-                  className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <FiDownload className="mr-2" />
-                  {isExporting ? 'Exporting...' : 'Export & Download'}
-                </button>
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
           </div>
         </div>
