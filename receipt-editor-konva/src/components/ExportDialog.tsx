@@ -106,14 +106,9 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       });
 
       // キャンバスと同じCSSフィルター効果を適用
-      if (config.monochromePreview) {
-        // キャンバスと同じフィルター効果を適用したプレビュー
-        const filteredDataURL = await applyCanvasFilter(dataURL, config);
-        setPreviewUrl(filteredDataURL);
-      } else {
-        // フィルターなしのプレビュー
-        setPreviewUrl(dataURL);
-      }
+      const filteredDataURL = await applyCanvasFilter(dataURL, config);
+      setPreviewUrl(filteredDataURL);
+
     } catch (error) {
       console.error('Preview error:', error);
       setExportError(error instanceof Error ? error.message : 'Preview failed');
@@ -160,17 +155,13 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       });
 
       // キャンバスと同じフィルター効果を適用してからBMP変換
-      let processedDataURL = dataURL;
-      if (config.monochromePreview) {
-        processedDataURL = await applyCanvasFilter(dataURL, config);
-      }
+      const processedDataURL = await applyCanvasFilter(dataURL, config);
       
-      // PNG→BMP変換を行う（フィルター適用済みの場合は白黒変換を無効化）
-      const shouldApplyMonochrome = !config.monochromePreview; // フィルター適用済みの場合は無効化
+      // PNG→BMP変換を行う（フィルター適用済みなので白黒変換は無効化）
       const monochromeOptions: MonochromeOptions = {
         threshold: config.monochromeThreshold,
       };
-      const bmpBlob = await dataURLToBMP(processedDataURL, shouldApplyMonochrome, monochromeOptions);
+      const bmpBlob = await dataURLToBMP(processedDataURL, false, monochromeOptions);
 
       // ダウンロードリンクを作成
       const link = document.createElement('a');

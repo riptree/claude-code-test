@@ -32,7 +32,6 @@ export interface CanvasConfig {
   maxFileSize: number;
   exportFormat: 'bmp';
   colorMode: 'monochrome';
-  monochromePreview: boolean;
   monochromeThreshold: number;
   monochromeContrast: number;
   monochromeBrightness: number;

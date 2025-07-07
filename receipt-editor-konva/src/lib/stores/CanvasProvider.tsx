@@ -12,7 +12,6 @@ const DEFAULT_CONFIG: CanvasConfig = {
   maxFileSize: 1500000, // 1.5MB in bytes
   exportFormat: 'bmp',
   colorMode: 'monochrome',
-  monochromePreview: true, // キャンバスで白黒プレビューを表示
   monochromeThreshold: 128,
   monochromeContrast: 0.8, // より穏やかなコントラスト
   monochromeBrightness: 0, // CSSのbrightness(1)に対応
