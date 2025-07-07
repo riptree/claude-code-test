@@ -65,28 +65,3 @@ export interface CanvasActions {
   bringToFront: (id: string) => void;
   sendToBack: (id: string) => void;
 }
-
-export interface ExportOptions {
-  format: 'bmp';
-  quality: number;
-  width: number;
-  height: number;
-  monochrome: boolean;
-  maxFileSize: number;
-}
-
-export interface ImportedImage {
-  id: string;
-  url: string;
-  width: number;
-  height: number;
-  file: File;
-}
-
-export interface GridSettings {
-  size: number;
-  visible: boolean;
-  snapToGrid: boolean;
-  color: string;
-  opacity: number;
-}
