@@ -22,7 +22,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
 
   const [exportSettings, setExportSettings] = useState({
     filename: 'receipt',
-    format: 'png',
   });
 
   // エクスポート用の固定サイズ
