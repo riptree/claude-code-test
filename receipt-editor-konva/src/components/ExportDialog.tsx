@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { FiX, FiDownload, FiImage } from 'react-icons/fi';
 import { Stage as KonvaStage } from 'konva/lib/Stage';
 import { useCanvasStore } from '@/lib/stores/canvasStore';
-import { dataURLToBMP, MonochromeOptions } from '@/lib/canvas/bmpExporter';
+import { dataURLToBMP } from '@/lib/canvas/bmpExporter';
 import { CanvasConfig } from '@/lib/types';
 
 interface ExportDialogProps {
@@ -158,10 +158,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       const processedDataURL = await applyCanvasFilter(dataURL, config);
       
       // PNG→BMP変換を行う（フィルター適用済みなので白黒変換は無効化）
-      const monochromeOptions: MonochromeOptions = {
-        threshold: config.monochromeThreshold,
-      };
-      const bmpBlob = await dataURLToBMP(processedDataURL, false, monochromeOptions);
+      const bmpBlob = await dataURLToBMP(processedDataURL, 200);
 
       // ダウンロードリンクを作成
       const link = document.createElement('a');
