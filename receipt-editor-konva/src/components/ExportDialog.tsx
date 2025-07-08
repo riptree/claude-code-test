@@ -20,8 +20,16 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   
+  // 閾値計算の共通ロジック
+  const calculateThreshold = useCallback((config: CanvasConfig): number => {
+    const baseThreshold = 128;
+    const contrastFactor = config.monochromeContrast || 1;
+    return Math.max(50, Math.min(205, baseThreshold / contrastFactor));
+  }, []);
+  
   const [exportSettings, setExportSettings] = useState({
     filename: 'receipt',
+    threshold: calculateThreshold(config),
   });
 
   // エクスポートサイズの設定
@@ -31,15 +39,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
   // キャンバスの設定から向きを自動判定
   const orientation = config.orientation;
 
-  // 閾値計算の共通ロジック
-  const calculateThreshold = useCallback((config: CanvasConfig): number => {
-    const baseThreshold = 128;
-    const contrastFactor = config.monochromeContrast || 1;
-    return Math.max(50, Math.min(205, baseThreshold / contrastFactor));
-  }, []);
-
   // キャンバスと同じCSSフィルター効果を適用し、2階調（白黒）に変換する関数
-  const applyCanvasFilter = useCallback(async (dataURL: string, config: CanvasConfig): Promise<string> => {
+  const applyCanvasFilter = useCallback(async (dataURL: string, config: CanvasConfig, threshold?: number): Promise<string> => {
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -81,8 +82,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
         const imageData = filterCtx.getImageData(0, 0, filterCanvas.width, filterCanvas.height);
         const data = imageData.data;
         
-        // 共通の閾値計算ロジックを使用
-        const threshold = calculateThreshold(config);
+        // 閾値を使用（引数で指定されていない場合は計算）
+        const thresholdValue = threshold !== undefined ? threshold : calculateThreshold(config);
         
         // ピクセルごとに2階調変換
         for (let i = 0; i < data.length; i += 4) {
@@ -94,7 +95,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
           const gray = 0.299 * r + 0.587 * g + 0.114 * b;
           
           // 2階調変換：閾値より大きければ白(255)、小さければ黒(0)
-          const binaryValue = gray > threshold ? 255 : 0;
+          const binaryValue = gray > thresholdValue ? 255 : 0;
           
           data[i] = binaryValue;     // Red
           data[i + 1] = binaryValue; // Green
@@ -118,7 +119,6 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       return;
     }
 
-    setIsExporting(true);
     setExportError(null);
 
     try {
@@ -140,24 +140,33 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
         height: canvasHeight,
       });
 
-      // キャンバスと同じCSSフィルター効果を適用
-      const filteredDataURL = await applyCanvasFilter(dataURL, config);
+      // キャンバスと同じCSSフィルター効果を適用（ユーザー指定の閾値を使用）
+      const filteredDataURL = await applyCanvasFilter(dataURL, config, exportSettings.threshold);
       setPreviewUrl(filteredDataURL);
 
     } catch (error) {
       console.error('Preview error:', error);
       setExportError(error instanceof Error ? error.message : 'Preview failed');
-    } finally {
-      setIsExporting(false);
     }
-  }, [stageRef, config, EXPORT_WIDTH, EXPORT_HEIGHT, applyCanvasFilter]);
+  }, [stageRef, config, EXPORT_WIDTH, EXPORT_HEIGHT, applyCanvasFilter, exportSettings.threshold]);
 
-  // ダイアログが開かれたときに自動的にプレビューを生成
+  // ダイアログが開かれたときにプレビューを生成
   useEffect(() => {
     if (isOpen && stageRef.current) {
       handlePreview();
     }
   }, [isOpen, handlePreview, stageRef]);
+
+  // 閾値変更時のデバウンスプレビュー更新
+  useEffect(() => {
+    if (!isOpen || !stageRef.current) return;
+    
+    const debounceTimer = setTimeout(() => {
+      handlePreview();
+    }, 300); // 300msの遅延
+
+    return () => clearTimeout(debounceTimer);
+  }, [exportSettings.threshold, isOpen, stageRef, handlePreview]);
 
   if (!isOpen) return null;
 
@@ -190,13 +199,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       });
 
       // キャンバスと同じフィルター効果を適用してからBMP変換
-      const processedDataURL = await applyCanvasFilter(dataURL, config);
+      const processedDataURL = await applyCanvasFilter(dataURL, config, exportSettings.threshold);
       
-      // フィルター適用と同じ閾値計算ロジックを使用
-      const threshold = calculateThreshold(config);
-      
-      // PNG→BMP変換を行う（統一された閾値を使用）
-      const bmpBlob = await dataURLToBMP(processedDataURL, threshold);
+      // PNG→BMP変換を行う（ユーザー指定の閾値を使用）
+      const bmpBlob = await dataURLToBMP(processedDataURL, exportSettings.threshold);
 
       // ダウンロードリンクを作成
       const link = document.createElement('a');
@@ -223,9 +229,13 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
       ...prev,
       [key]: value,
     }));
-    // Clear preview when settings change
-    setPreviewUrl(null);
+    // Clear preview when filename changes, but not for threshold (threshold changes will auto-update preview)
+    if (key !== 'threshold') {
+      setPreviewUrl(null);
+    }
   };
+
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -262,6 +272,34 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      白黒変換の閾値 ({exportSettings.threshold})
+                    </label>
+                    <p className="text-xs text-gray-600 mb-2">
+                      スライダーを動かすとプレビューが更新されます
+                    </p>
+                    <input
+                      type="range"
+                      min="0"
+                      max="255"
+                      value={exportSettings.threshold}
+                      onChange={(e) => handleSettingChange('threshold', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0 (黒が多い)</span>
+                      <span>デフォルト: {Math.round(calculateThreshold(config))}</span>
+                      <span>255 (白が多い)</span>
+                    </div>
+                    <button
+                      onClick={() => handleSettingChange('threshold', calculateThreshold(config))}
+                      className="mt-1 text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      デフォルト値にリセット
+                    </button>
+                  </div>
+
 
 
                   <div className="bg-gray-50 p-3 rounded-lg">
@@ -271,6 +309,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                     </p>
                     <p className="text-sm text-gray-600">
                       サイズ: {EXPORT_WIDTH} × {EXPORT_HEIGHT} px
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      閾値: {exportSettings.threshold} 
+                      {exportSettings.threshold === calculateThreshold(config) && ' (デフォルト)'}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {orientation === 'portrait' 
@@ -328,7 +370,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, stageRef }
                 <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 text-center">
                   <FiImage size={48} className="mx-auto text-gray-400 mb-4" />
                   <p className="text-sm text-gray-500">
-                    Click &quot;Preview&quot; to see how your receipt will look
+                    ダイアログを開くとプレビューが表示されます
                   </p>
                 </div>
               )}
